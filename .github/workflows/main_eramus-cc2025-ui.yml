@@ -1,5 +1,5 @@
 # File: .github/workflows/main_eramus-cc2025-ui.yml
-name: Deploy Vanilla JS Frontend to Azure Web App - eramus-cc2025-ui
+name: Deploy Vanilla JS Frontend to Azure Web App - erasmus-cc2025-ui
 
 on:
   push:
@@ -44,6 +44,6 @@ jobs:
       - name: Deploy Frontend to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-            app-name: 'eramus-cc2025-ui'
+            app-name: 'erasmus-cc2025-ui'
             slot-name: 'Production'
             package: '${{ github.workspace }}/frontend_package.zip'

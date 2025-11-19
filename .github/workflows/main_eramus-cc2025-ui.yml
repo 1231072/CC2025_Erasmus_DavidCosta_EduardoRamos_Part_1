@@ -44,6 +44,7 @@ jobs:
       - name: Deploy Frontend to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'eramus'
-          slot-name: 'Production'
-          package: '${{ github.workspace }}/frontend_package.zip'
+
+            app-name: 'eramus-cc2025-ui'
+            slot-name: 'Production'
+            package: '${{ github.workspace }}/frontend_package.zip'

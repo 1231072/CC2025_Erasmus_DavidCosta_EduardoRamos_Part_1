@@ -1,6 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
+# File: .github/workflows/main_eramus-cc2025-ui.yml
 name: Deploy Vanilla JS Frontend to Azure Web App - eramus-cc2025-ui
 
 on:
@@ -23,10 +21,18 @@ jobs:
 
       # 1. Empacotar apenas os ficheiros estáticos (HTML/JS/CSS)
       - name: Create Static Package (ZIP)
-        run:
+        run: |
           WORKSPACE="${{ github.workspace }}"
           STATIC_DIR="$WORKSPACE/src/main/resources/static"
-          cd $STATIC_DIR && zip -r frontend_package.zip . && mv frontend_package.zip $WORKSPACE/
+          if [ -d "$STATIC_DIR" ]; then
+            cd "$STATIC_DIR"
+            zip -r frontend_package.zip . || { echo "zip failed"; exit 1; }
+            mv frontend_package.zip "$WORKSPACE/"
+          else
+            echo "Static directory not found: $STATIC_DIR"
+            ls -la "$WORKSPACE"
+            exit 1
+          fi
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -38,6 +44,6 @@ jobs:
       - name: Deploy Frontend to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'eramus-cc2025-ui'
+          app-name: 'eramus'
           slot-name: 'Production'
           package: '${{ github.workspace }}/frontend_package.zip'

@@ -1,4 +1,4 @@
-// A URL base da sua API Spring Boot (ajuste se estiver noutra porta/domínio)
+// A URL base da sua API Spring Boot
 const BASE_URL = 'https://erasmus-cc2025-api.azurewebsites.net/api';
 
 // --- Funções de Autenticação ---
@@ -24,7 +24,7 @@ async function loginUser(username, password) {
     if (response.ok) {
         const data = await response.json();
         const jwt = data.token;
-        localStorage.setItem('jwtToken', jwt); // Armazena o JWT
+        localStorage.setItem('jwtToken', jwt);
         return true;
     }
     return false;
@@ -32,6 +32,7 @@ async function loginUser(username, password) {
 
 function logout() {
     localStorage.removeItem('jwtToken');
+    // NÃO use window.location.reload() aqui se estiver a chamar dentro de um loop
 }
 
 function getAuthHeader() {
@@ -39,23 +40,36 @@ function getAuthHeader() {
     return token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
 }
 
-// --- Funções de Consumo de Dados (/api/items) ---
+// --- Funções de Consumo de Dados ---
 
 async function fetchItems() {
     const url = `${BASE_URL}/items`;
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: getAuthHeader() // Usa o JWT para aceder ao endpoint protegido
-    });
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: getAuthHeader()
+        });
 
-    if (response.ok) {
-        return await response.json();
-    }
-    // Lidar com 401 Unauthorized (se o token for inválido/expirado)
-    if (response.status === 401) {
-        alert("Sessão expirada. Por favor, faça login novamente.");
-        logout();
-        showView('auth-view');
+        if (response.ok) {
+            return await response.json();
+        }
+
+        // 🛑 CORREÇÃO DO LOOP INFINITO 🛑
+        if (response.status === 401 || response.status === 403) {
+            console.warn("Sessão inválida. A fazer logout...");
+            logout(); // Limpa o token
+
+            // Em vez de recarregar a página (que causa o loop),
+            // apenas forçamos a UI a mostrar o ecrã de login.
+            // O ui.js deve detetar que não há token na próxima interação.
+            if (typeof showView === 'function') {
+                showView('auth-view');
+            }
+            return [];
+        }
+    } catch (error) {
+        console.error("Erro ao buscar items:", error);
+        return [];
     }
     return [];
 }
@@ -69,7 +83,3 @@ async function createItem(name) {
     });
     return response;
 }
-
-// Exportar funções necessárias (não é estritamente necessário em Vanilla JS, mas é boa prática)
-// Pode simplesmente referenciar as funções globais no ui.js
-// Para simplificar, vamos assumir que estas funções são globais.

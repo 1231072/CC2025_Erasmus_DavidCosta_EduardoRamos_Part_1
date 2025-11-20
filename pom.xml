@@ -103,7 +103,6 @@
             <artifactId>thymeleaf-extras-springsecurity6</artifactId>
         </dependency>
 
-        <!-- A dependência H2 deve ser removida eventualmente para produção, mas se estiver a causar conflitos, mantemo-la por agora. -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
@@ -143,7 +142,6 @@
 
     <build>
         <plugins>
-            <!-- FIX DE CODIFICAÇÃO (2): Forçar UTF-8 no maven-resources-plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>

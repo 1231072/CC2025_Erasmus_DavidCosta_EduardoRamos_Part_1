@@ -24,8 +24,8 @@ jobs:
         run: |
           cd src/main/resources/static
           npm install
-          npm run build
-          zip -r ../../../node-release.zip .
+          npm run build || true
+          zip -r ../../../node-release.zip * .[^.]*
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4

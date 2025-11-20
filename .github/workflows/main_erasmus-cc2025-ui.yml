@@ -1,49 +1,43 @@
-# File: .github/workflows/main_erasmus-cc2025-ui.yml
-name: Build and deploy JAR app to Azure Web App - erasmus-cc2025-ui
+name: Deploy Frontend Node.js App - erasmus-cc2025-ui
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'src/main/resources/static/**'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Java version
-        uses: actions/setup-java@v4
+      - name: Set up Node.js version
+        uses: actions/setup-node@v3
         with:
-          java-version: '21'
-          distribution: 'microsoft'
+          node-version: '24.x'
 
-      - name: Build with Maven
-        run: mvn clean install -DskipTests
 
-      # 1. FIX: Rename the JAR to app.jar
-      - name: Rename JAR to app.jar
+      - name: Install dependencies and prepare static files
         run: |
-          JAR_FILE=$(find target -name "*.jar" -type f -print -quit)
-          if [ -f "$JAR_FILE" ]; then
-            mv "$JAR_FILE" target/app.jar
-            echo "Renamed $JAR_FILE to target/app.jar"
-          else
-            echo "Error: JAR file not found in target directory."
-            exit 1
-          fi
+          cd src/main/resources/static
+          npm install
+          
 
-      # 2. FIX: Upload the renamed artifact
+
+      - name: Zip artifact for deployment
+        run: |
+          cd src/main/resources/static
+          zip -r ../../../release.zip .
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: java-app
-          path: '${{ github.workspace }}/target/app.jar'
-
+          name: node-app
+          path: release.zip
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -52,14 +46,13 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: java-app
+          name: node-app
 
-      # 3. FIX: Deploy using 'app.jar'
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'erasmus-cc2025-ui'
           slot-name: 'Production'
-          package: 'app.jar'
+          package: release.zip
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_7ED022949DB449D5BF779F71A2E48126 }}
